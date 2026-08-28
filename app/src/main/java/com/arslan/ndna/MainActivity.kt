@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
@@ -53,6 +54,8 @@ private fun NdnaApp(vm: SearchViewModel = viewModel()) {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url)))
     }
     LaunchedEffect(state.loading) { if (state.loading) screen = Screen.RESULTS }
+
+    BackHandler(enabled = screen != Screen.FILTERS) { screen = Screen.FILTERS }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedContent(
             targetState = screen,
