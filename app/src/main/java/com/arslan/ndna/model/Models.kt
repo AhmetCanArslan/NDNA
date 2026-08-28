@@ -38,7 +38,8 @@ data class AppItem(
     val url: String,
     val stars: Int?,
     val source: String,
-    val matches: List<String>
+    val matches: List<String>,
+    val updatedAt: String = ""
 )
 
 data class SearchState(

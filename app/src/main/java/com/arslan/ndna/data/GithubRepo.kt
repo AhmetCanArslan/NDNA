@@ -11,8 +11,13 @@ class GithubRepo(private val tokenStore: TokenStore) {
 
     private val cache = mutableMapOf<String, List<AppItem>>()
 
-    fun search(filters: Filters, page: Int): List<AppItem> {
-        val query = QueryBuilder.build(filters)
+    fun search(filters: Filters, page: Int): List<AppItem> =
+        QueryBuilder.buildAll(filters)
+            .flatMap { searchOne(it, page, filters) }
+            .distinctBy { it.id }
+            .sortedByDescending { it.updatedAt }
+
+    private fun searchOne(query: String, page: Int, filters: Filters): List<AppItem> {
         val key = "$query#$page"
         cache[key]?.let { return it }
         guardRateLimit()
@@ -69,7 +74,8 @@ class GithubRepo(private val tokenStore: TokenStore) {
             url = json.optString("html_url"),
             stars = stars,
             source = "GitHub",
-            matches = Matcher.chips(filters, name, description, stars)
+            matches = Matcher.chips(filters, name, description, stars),
+            updatedAt = json.optString("pushed_at")
         )
     }
 }

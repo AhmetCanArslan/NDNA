@@ -1,6 +1,7 @@
 package com.arslan.ndna.data
 
 import com.arslan.ndna.model.Filters
+import com.arslan.ndna.model.Lang
 import com.arslan.ndna.model.Triple3
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -10,19 +11,19 @@ object QueryBuilder {
     /** Restricts results to Android app repos. */
     private const val ANDROID_CLAUSE = "android in:name,description,topics"
 
-    fun build(f: Filters): String = listOfNotNull(
+    fun buildAll(f: Filters): List<String> =
+        if (f.langs.isEmpty()) listOf(build(f, null))
+        else f.langs.map { build(f, it) }
+
+    fun build(f: Filters, lang: Lang?): String = listOfNotNull(
         f.keywords.trim().ifBlank { null },
         shizukuClause(f.shizuku),
         ANDROID_CLAUSE,
-        langClause(f),
+        lang?.let { "language:${it.query}" },
         "stars:${f.minStars}..${f.maxStars}",
         pushedClause(f),
         "fork:false"
     ).joinToString(" ")
-
-    private fun langClause(f: Filters): String? = f.langs
-        .takeIf { it.isNotEmpty() }
-        ?.joinToString(" ") { "language:${it.query}" }
 
     private fun shizukuClause(v: Triple3): String? = when (v) {
         Triple3.YES -> "shizuku in:name,description,topics"
