@@ -1,36 +1,51 @@
 package com.arslan.ndna.ui
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.net.Uri
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     initialToken: String,
@@ -42,12 +57,18 @@ fun SettingsScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            MediumFlexibleTopAppBar(
                 title = { Text("Settings") },
+                subtitle = { Text("Token and catalog") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
+                    FilledIconButton(
+                        onClick = onBack,
+                        shape = MaterialTheme.shapes.medium,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    ) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back") }
                 }
             )
         }
@@ -66,32 +87,97 @@ private fun SettingsBody(
 ) {
     var token by remember { mutableStateOf(initialToken) }
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        RateLimitCard()
         TokenHelpCard()
-        TokenField(token) { token = it }
-        Button(onClick = { onSaveToken(token) }) { Text("Save token") }
-        Button(onClick = onSync, modifier = Modifier.fillMaxWidth()) { Text("Sync F-Droid catalog") }
-        if (syncMessage != null) Text(syncMessage, style = MaterialTheme.typography.bodyMedium)
+        SectionCard("GitHub token", MaterialTheme.colorScheme.tertiary) {
+            TokenField(token) { token = it }
+            Button(
+                onClick = { onSaveToken(token) },
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Rounded.Key, null, Modifier.size(18.dp))
+                Text("Save token", Modifier.padding(start = 8.dp))
+            }
+        }
+        SectionCard("F-Droid catalog", MaterialTheme.colorScheme.secondary) {
+            FilledTonalButton(
+                onClick = onSync,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Rounded.CloudSync, null, Modifier.size(18.dp))
+                Text("Sync catalog", Modifier.padding(start = 8.dp))
+            }
+            AnimatedVisibility(
+                visible = syncMessage != null,
+                enter = fadeIn() + slideInVertically { it / 2 }
+            ) {
+                Text(
+                    syncMessage.orEmpty(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RateLimitCard() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primary
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.onPrimary) {
+                Icon(
+                    Icons.Rounded.Key,
+                    null,
+                    Modifier.padding(10.dp).size(22.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Column {
+                Text(
+                    "10 → 30 searches / min",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Text(
+                    "A token triples your search budget.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun TokenHelpCard() {
     val context = LocalContext.current
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    SectionCard("How to get a token") {
+        TOKEN_STEPS.forEach { StepText(it) }
+        TextButton(
+            onClick = { openTokenPage(context) },
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            Text("How to get a GitHub token", style = MaterialTheme.typography.titleMedium)
-            TOKEN_STEPS.forEach { StepText(it) }
-            TextButton(onClick = { openTokenPage(context) }) { Text("Open GitHub token page") }
+            Icon(Icons.AutoMirrored.Rounded.OpenInNew, null, Modifier.size(18.dp))
+            Text("Open GitHub token page", Modifier.padding(start = 8.dp))
         }
     }
 }
@@ -112,7 +198,6 @@ private fun openTokenPage(context: android.content.Context) {
 private const val TOKEN_URL = "https://github.com/settings/tokens/new?description=NDNA&scopes="
 
 private val TOKEN_STEPS = listOf(
-    "Without a token searches are limited to 10 per minute, with one you get 30.",
     "1. Open the token page below and sign in to GitHub.",
     "2. Give the token a name, for example NDNA.",
     "3. Set an expiration date.",
@@ -126,7 +211,7 @@ private fun TokenField(token: String, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = token,
         onValueChange = onChange,
-        label = { Text("GitHub token (optional)") },
+        label = { Text("Token (optional)") },
         singleLine = true,
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth()

@@ -1,38 +1,50 @@
 package com.arslan.ndna.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arslan.ndna.model.AppItem
 import com.arslan.ndna.model.SearchState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ResultsScreen(
     state: SearchState,
@@ -48,19 +60,28 @@ fun ResultsScreen(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            TopAppBar(
+            MediumFlexibleTopAppBar(
                 title = { Text("${state.items.size} results") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
+                subtitle = { Text(if (state.loading) "Searching…" else "Tap a card to open it") },
+                navigationIcon = { BackButton(onBack) },
                 scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
         ResultsBody(state, onOpen, onLoadMore, Modifier.padding(padding))
     }
+}
+
+@Composable
+private fun BackButton(onBack: () -> Unit) {
+    FilledIconButton(
+        onClick = onBack,
+        shape = MaterialTheme.shapes.medium,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    ) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back") }
 }
 
 @Composable
@@ -84,37 +105,85 @@ private fun ResultsBody(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        items(state.items, key = { it.id }) { item -> AppCard(item) { onOpen(item) } }
+        items(state.items, key = { it.id }) { item ->
+            AppCard(item, Modifier.animateItem()) { onOpen(item) }
+        }
         item { LoadMore(state, onLoadMore) }
     }
 }
 
 @Composable
 private fun LoadMore(state: SearchState, onLoadMore: () -> Unit) {
-    if (!state.canLoadMore) return
-    OutlinedButton(
-        onClick = onLoadMore,
-        enabled = !state.loading,
-        modifier = Modifier.fillMaxWidth()
+    AnimatedVisibility(
+        visible = state.canLoadMore,
+        enter = fadeIn() + expandVertically()
     ) {
-        Text(if (state.loading) "Loading…" else "Load more")
+        Button(
+            onClick = onLoadMore,
+            enabled = !state.loading,
+            shape = MaterialTheme.shapes.large,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            ),
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+        ) {
+            Text(if (state.loading) "Loading…" else "Load more")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun Loading(modifier: Modifier) {
+    Box(modifier.fillMaxSize(), Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            ContainedLoadingIndicator()
+            Text(
+                "Digging through repos…",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 @Composable
-private fun Loading(modifier: Modifier) {
-    Box(modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
-}
-
-@Composable
 private fun Empty(modifier: Modifier) {
-    Box(modifier.fillMaxSize(), Alignment.Center) {
-        Text(
-            "No matches. Loosen the filters.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Box(modifier.fillMaxSize().padding(32.dp), Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Rounded.SearchOff,
+                    null,
+                    Modifier.size(44.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Text(
+                "Nothing matched",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                "Loosen the filters and try again.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
