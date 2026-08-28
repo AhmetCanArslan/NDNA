@@ -7,9 +7,13 @@ import java.time.temporal.ChronoUnit
 
 object QueryBuilder {
 
+    /** Restricts results to Android app repos. */
+    private const val ANDROID_CLAUSE = "android in:name,description,topics"
+
     fun build(f: Filters): String = listOfNotNull(
         f.keywords.trim().ifBlank { null },
         shizukuClause(f.shizuku),
+        ANDROID_CLAUSE,
         langClause(f),
         "stars:${f.minStars}..${f.maxStars}",
         pushedClause(f),

@@ -4,9 +4,7 @@ enum class Lang(val label: String, val query: String) {
     KOTLIN("Kotlin", "Kotlin"),
     JAVA("Java", "Java"),
     DART("Dart", "Dart"),
-    CPP("C++", "C++"),
-    RUST("Rust", "Rust"),
-    JS("JavaScript", "JavaScript")
+    CPP("C++", "C++")
 }
 
 enum class Triple3(val label: String) {
