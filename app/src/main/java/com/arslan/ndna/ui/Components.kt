@@ -21,7 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -101,4 +104,13 @@ private fun MorphChip(selected: Boolean, label: String, onClick: () -> Unit) {
             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
         )
     )
+}
+
+/** Tap anywhere outside a text field to drop focus and close the keyboard. */
+@Composable
+fun Modifier.dismissKeyboardOnTap(): Modifier {
+    val focusManager = LocalFocusManager.current
+    return this.pointerInput(Unit) {
+        detectTapGestures(onTap = { focusManager.clearFocus() })
+    }
 }

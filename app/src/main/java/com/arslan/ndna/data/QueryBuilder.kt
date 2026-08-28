@@ -10,11 +10,15 @@ object QueryBuilder {
     fun build(f: Filters): String = listOfNotNull(
         f.keywords.trim().ifBlank { null },
         shizukuClause(f.shizuku),
-        f.lang.query?.let { "language:$it" },
+        langClause(f),
         "stars:${f.minStars}..${f.maxStars}",
         pushedClause(f),
         "fork:false"
     ).joinToString(" ")
+
+    private fun langClause(f: Filters): String? = f.langs
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(" ") { "language:${it.query}" }
 
     private fun shizukuClause(v: Triple3): String? = when (v) {
         Triple3.YES -> "shizuku in:name,description,topics"

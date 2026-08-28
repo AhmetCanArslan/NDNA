@@ -81,6 +81,7 @@ private fun SettingsBody(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .dismissKeyboardOnTap()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)

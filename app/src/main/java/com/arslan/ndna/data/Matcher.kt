@@ -14,10 +14,10 @@ object Matcher {
         f.keywords.trim().lowercase().split(" ")
             .filter { it.isNotBlank() && haystack.contains(it) }
 
-    private fun filterChips(f: Filters, haystack: String, stars: Int?): List<String> = listOfNotNull(
-        f.lang.query,
-        stars?.let { "$it stars" },
-        "shizuku".takeIf { f.shizuku == Triple3.YES || haystack.contains("shizuku") },
-        f.recency.label.takeIf { f.recency.minutes != null }
-    )
+    private fun filterChips(f: Filters, haystack: String, stars: Int?): List<String> =
+        f.langs.map { it.label } + listOfNotNull(
+            stars?.let { "$it stars" },
+            "shizuku".takeIf { f.shizuku == Triple3.YES || haystack.contains("shizuku") },
+            f.recency.label.takeIf { f.recency.minutes != null }
+        )
 }

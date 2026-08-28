@@ -1,9 +1,12 @@
 package com.arslan.ndna.model
 
-enum class Lang(val label: String, val query: String?) {
-    ANY("Any", null),
+enum class Lang(val label: String, val query: String) {
     KOTLIN("Kotlin", "Kotlin"),
-    JAVA("Java", "Java")
+    JAVA("Java", "Java"),
+    DART("Dart", "Dart"),
+    CPP("C++", "C++"),
+    RUST("Rust", "Rust"),
+    JS("JavaScript", "JavaScript")
 }
 
 enum class Triple3(val label: String) {
@@ -23,7 +26,7 @@ enum class Recency(val label: String, val minutes: Long?) {
 data class Filters(
     val minStars: Int = 5,
     val maxStars: Int = 1000,
-    val lang: Lang = Lang.KOTLIN,
+    val langs: Set<Lang> = setOf(Lang.KOTLIN),
     val recency: Recency = Recency.D1,
     val shizuku: Triple3 = Triple3.ANY,
     val keywords: String = ""
