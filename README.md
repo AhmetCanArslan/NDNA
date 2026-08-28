@@ -4,7 +4,7 @@
 
 <h1 align="center">NDNA</h1>
 
-<p align="center">Find newly updated open source Android apps on GitHub.</p>
+<p align="center">New Day New App, Find newly updated open source Android apps on GitHub.</p>
 
 ## What it does
 
