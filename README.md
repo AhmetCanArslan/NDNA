@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ic_launcher-playstore.png" alt="NDNA icon" width="128">
+  <img src="app/src/main/ic_launcher-playstore.png" alt="NDNA icon" width="128">
 </p>
 
 <h1 align="center">NDNA</h1>
@@ -14,6 +14,12 @@ projects that are hard to spot through normal GitHub search.
 
 Every search is restricted to Android projects. Repositories must mention
 Android in their name, description or topics, and forks are excluded.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/filters.png" alt="Filters screen" width="280">
+</p>
 
 ## Filters
 
