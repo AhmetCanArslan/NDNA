@@ -26,9 +26,7 @@ data class Filters(
     val lang: Lang = Lang.KOTLIN,
     val recency: Recency = Recency.D1,
     val shizuku: Triple3 = Triple3.ANY,
-    val keywords: String = "",
-    val github: Boolean = true,
-    val fdroid: Boolean = false
+    val keywords: String = ""
 )
 
 data class AppItem(

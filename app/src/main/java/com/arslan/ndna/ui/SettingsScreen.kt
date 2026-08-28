@@ -2,9 +2,6 @@ package com.arslan.ndna.ui
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material3.Button
@@ -25,11 +21,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -49,17 +44,16 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen(
     initialToken: String,
-    syncMessage: String?,
     onSaveToken: (String) -> Unit,
-    onSync: () -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text("Settings") },
-                subtitle = { Text("Token and catalog") },
+            TopAppBar(
+                title = {
+                    Text("Settings", style = MaterialTheme.typography.headlineSmall)
+                },
                 navigationIcon = {
                     FilledIconButton(
                         onClick = onBack,
@@ -73,16 +67,14 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        SettingsBody(initialToken, syncMessage, onSaveToken, onSync, Modifier.padding(padding))
+        SettingsBody(initialToken, onSaveToken, Modifier.padding(padding))
     }
 }
 
 @Composable
 private fun SettingsBody(
     initialToken: String,
-    syncMessage: String?,
     onSaveToken: (String) -> Unit,
-    onSync: () -> Unit,
     modifier: Modifier
 ) {
     var token by remember { mutableStateOf(initialToken) }
@@ -104,26 +96,6 @@ private fun SettingsBody(
             ) {
                 Icon(Icons.Rounded.Key, null, Modifier.size(18.dp))
                 Text("Save token", Modifier.padding(start = 8.dp))
-            }
-        }
-        SectionCard("F-Droid catalog", MaterialTheme.colorScheme.secondary) {
-            FilledTonalButton(
-                onClick = onSync,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Rounded.CloudSync, null, Modifier.size(18.dp))
-                Text("Sync catalog", Modifier.padding(start = 8.dp))
-            }
-            AnimatedVisibility(
-                visible = syncMessage != null,
-                enter = fadeIn() + slideInVertically { it / 2 }
-            ) {
-                Text(
-                    syncMessage.orEmpty(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

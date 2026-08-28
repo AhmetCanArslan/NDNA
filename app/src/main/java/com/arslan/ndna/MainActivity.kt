@@ -7,12 +7,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arslan.ndna.model.AppItem
@@ -44,50 +48,49 @@ private fun NdnaApp(vm: SearchViewModel = viewModel()) {
     var screen by remember { mutableStateOf(Screen.FILTERS) }
     val filters by vm.filters.collectAsState()
     val state by vm.state.collectAsState()
-    val syncMessage by vm.syncMessage.collectAsState()
     val context = LocalContext.current
     val open: (AppItem) -> Unit = { item ->
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url)))
     }
     LaunchedEffect(state.loading) { if (state.loading) screen = Screen.RESULTS }
-    AnimatedContent(
-        targetState = screen,
-        transitionSpec = { screenTransition(initialState, targetState) },
-        label = "screen"
-    ) { current ->
-        when (current) {
-            Screen.FILTERS -> FiltersScreen(
-                filters = filters,
-                onChange = vm::update,
-                onSearch = { vm.search() },
-                onSettings = { screen = Screen.SETTINGS }
-            )
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        AnimatedContent(
+            targetState = screen,
+            transitionSpec = { fadeThrough() },
+            label = "screen"
+        ) { current ->
+            when (current) {
+                Screen.FILTERS -> FiltersScreen(
+                    filters = filters,
+                    onChange = vm::update,
+                    onSearch = { vm.search() },
+                    onSettings = { screen = Screen.SETTINGS }
+                )
 
-            Screen.RESULTS -> ResultsScreen(
-                state = state,
-                onBack = { screen = Screen.FILTERS },
-                onOpen = open,
-                onLoadMore = { vm.loadMore() },
-                onErrorShown = vm::clearError
-            )
+                Screen.RESULTS -> ResultsScreen(
+                    state = state,
+                    onBack = { screen = Screen.FILTERS },
+                    onOpen = open,
+                    onLoadMore = { vm.loadMore() },
+                    onErrorShown = vm::clearError
+                )
 
-            Screen.SETTINGS -> SettingsScreen(
-                initialToken = vm.tokenStore.get(),
-                syncMessage = syncMessage,
-                onSaveToken = vm.tokenStore::set,
-                onSync = { vm.syncFdroid() },
-                onBack = { screen = Screen.FILTERS }
-            )
+                Screen.SETTINGS -> SettingsScreen(
+                    initialToken = vm.tokenStore.get(),
+                    onSaveToken = vm.tokenStore::set,
+                    onBack = { screen = Screen.FILTERS }
+                )
+            }
         }
     }
 }
 
-// Forward = slide left, back = slide right; the filters screen is the root.
-private fun screenTransition(from: Screen, to: Screen) =
-    if (to == Screen.FILTERS) {
-        slideInHorizontally(tween(400)) { -it / 4 } + fadeIn(tween(300)) togetherWith
-            slideOutHorizontally(tween(400)) { it / 4 } + fadeOut(tween(200))
-    } else {
-        slideInHorizontally(tween(400)) { it / 4 } + fadeIn(tween(300)) togetherWith
-            slideOutHorizontally(tween(400)) { -it / 4 } + fadeOut(tween(200))
-    }
+// Material fade-through: old screen leaves first, new one fades in after, so the
+// two never overlap at partial alpha (which is what read as flicker).
+private fun fadeThrough() =
+    ContentTransform(
+        targetContentEnter = fadeIn(tween(220, delayMillis = 90)) +
+            scaleIn(tween(220, delayMillis = 90), initialScale = 0.96f),
+        initialContentExit = fadeOut(tween(90)),
+        sizeTransform = SizeTransform(clip = false)
+    )

@@ -1,6 +1,5 @@
 package com.arslan.ndna.ui
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,35 +7,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.arslan.ndna.model.Filters
@@ -44,7 +31,6 @@ import com.arslan.ndna.model.Lang
 import com.arslan.ndna.model.Recency
 import com.arslan.ndna.model.Triple3
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersScreen(
     filters: Filters,
@@ -52,34 +38,12 @@ fun FiltersScreen(
     onSearch: () -> Unit,
     onSettings: () -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { FiltersBar(scrollBehavior, onSettings) },
+        modifier = Modifier.fillMaxSize(),
         floatingActionButton = { SearchFab(onSearch) }
     ) { padding ->
-        FiltersBody(filters, onChange, Modifier.padding(padding))
+        FiltersBody(filters, onChange, onSettings, Modifier.padding(padding))
     }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun FiltersBar(scrollBehavior: TopAppBarScrollBehavior, onSettings: () -> Unit) {
-    LargeFlexibleTopAppBar(
-        title = { Text("New Day\nNew App", style = MaterialTheme.typography.displaySmall) },
-        subtitle = { Text("Find fresh open-source Android apps") },
-        scrollBehavior = scrollBehavior,
-        actions = {
-            FilledIconButton(
-                onClick = onSettings,
-                shape = MaterialTheme.shapes.medium,
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            ) { Icon(Icons.Rounded.Settings, "Settings") }
-        }
-    )
 }
 
 @Composable
@@ -98,6 +62,7 @@ private fun SearchFab(onSearch: () -> Unit) {
 private fun FiltersBody(
     filters: Filters,
     onChange: ((Filters) -> Filters) -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier
 ) {
     Column(
@@ -107,7 +72,7 @@ private fun FiltersBody(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        SourceToggles(filters, onChange)
+        Hero(onSettings)
         SectionCard("Language") {
             ChipGroup(Lang.entries, { it == filters.lang }, { it.label }) { lang ->
                 onChange { it.copy(lang = lang) }
@@ -131,56 +96,41 @@ private fun FiltersBody(
     }
 }
 
+// Header lives at the very top of the scrolling content, not in a collapsing
+// app bar where the title would sit at the bottom edge.
+@Composable
+private fun Hero(onSettings: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                "New Day\nNew App",
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                "Find fresh open-source Android apps",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        FilledIconButton(
+            onClick = onSettings,
+            shape = MaterialTheme.shapes.medium,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        ) { Icon(Icons.Rounded.Settings, "Settings") }
+    }
+}
+
 @Composable
 private fun Spacer96() {
     Column(Modifier.height(96.dp)) {}
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SourceToggles(filters: Filters, onChange: ((Filters) -> Filters) -> Unit) {
-    SectionCard("Sources", MaterialTheme.colorScheme.secondary) {
-        ButtonGroup(
-            overflowIndicator = {},
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            customItem(
-                buttonGroupContent = {
-                    SourceToggle("GitHub", filters.github, Modifier.weight(1f)) {
-                        onChange { it.copy(github = !it.github) }
-                    }
-                },
-                menuContent = {}
-            )
-            customItem(
-                buttonGroupContent = {
-                    SourceToggle("F-Droid", filters.fdroid, Modifier.weight(1f)) {
-                        onChange { it.copy(fdroid = !it.fdroid) }
-                    }
-                },
-                menuContent = {}
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SourceToggle(
-    label: String,
-    checked: Boolean,
-    modifier: Modifier,
-    onToggle: () -> Unit
-) {
-    val pop by animateFloatAsState(if (checked) 1f else 0.96f, label = "sourcePop")
-    ToggleButton(
-        checked = checked,
-        onCheckedChange = { onToggle() },
-        modifier = modifier.graphicsLayer { scaleX = pop; scaleY = pop }
-    ) {
-        Icon(Icons.Rounded.Bolt, null, Modifier.size(18.dp))
-        Text(label, Modifier.padding(start = 8.dp))
-    }
 }
 
 @Composable

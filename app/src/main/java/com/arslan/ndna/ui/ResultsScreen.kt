@@ -26,7 +26,7 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -60,9 +60,20 @@ fun ResultsScreen(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text("${state.items.size} results") },
-                subtitle = { Text(if (state.loading) "Searching…" else "Tap a card to open it") },
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            "${state.items.size} results",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            if (state.loading) "Searching…" else "Tap a card to open it",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
                 navigationIcon = { BackButton(onBack) },
                 scrollBehavior = scrollBehavior
             )
