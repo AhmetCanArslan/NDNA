@@ -3,6 +3,7 @@ package com.arslan.ndna.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.arslan.ndna.data.FiltersStore
 import com.arslan.ndna.data.GithubRepo
 import com.arslan.ndna.data.TokenStore
 import com.arslan.ndna.model.AppItem
@@ -20,13 +21,18 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     val tokenStore = TokenStore(app)
     private val github = GithubRepo(tokenStore)
 
-    private val _filters = MutableStateFlow(Filters())
+    private val filtersStore = FiltersStore(app)
+
+    private val _filters = MutableStateFlow(filtersStore.load())
     val filters = _filters.asStateFlow()
 
     private val _state = MutableStateFlow(SearchState())
     val state = _state.asStateFlow()
 
-    fun update(block: (Filters) -> Filters) = _filters.update(block)
+    fun update(block: (Filters) -> Filters) {
+        _filters.update(block)
+        filtersStore.save(_filters.value)
+    }
 
     fun search() = run(page = 1)
 
