@@ -74,7 +74,7 @@ class GithubRepo(private val tokenStore: TokenStore) {
             url = json.optString("html_url"),
             stars = stars,
             source = "GitHub",
-            matches = Matcher.chips(filters, name, description, stars),
+            matches = Matcher.chips(filters, name, description),
             updatedAt = json.optString("pushed_at")
         )
     }
