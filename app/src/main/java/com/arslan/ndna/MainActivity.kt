@@ -54,6 +54,7 @@ private fun NdnaApp(vm: SearchViewModel = viewModel()) {
     val filters by vm.filters.collectAsState()
     val state by vm.state.collectAsState()
     val blocked by vm.blocked.collectAsState()
+    val preview by vm.preview.collectAsState()
     val context = LocalContext.current
     val open: (AppItem) -> Unit = { item ->
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url)))
@@ -91,7 +92,10 @@ private fun NdnaApp(vm: SearchViewModel = viewModel()) {
                 Screen.RESULTS -> ResultsScreen(
                     state = state,
                     onBack = { screen = Screen.FILTERS },
+                    preview = preview,
                     onOpen = open,
+                    onPreview = vm::openPreview,
+                    onClosePreview = vm::closePreview,
                     onBlock = vm::block,
                     onUnblock = vm::unblock,
                     onLoadMore = { vm.loadMore() },

@@ -47,6 +47,14 @@ data class BlockedApp(
     val name: String
 )
 
+/** README preview shown over the results list. */
+data class Preview(
+    val item: AppItem,
+    val loading: Boolean = true,
+    val readme: String = "",
+    val error: String? = null
+)
+
 data class SearchState(
     val loading: Boolean = false,
     val items: List<AppItem> = emptyList(),

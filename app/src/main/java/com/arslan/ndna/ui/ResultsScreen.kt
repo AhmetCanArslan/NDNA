@@ -44,6 +44,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arslan.ndna.model.AppItem
+import com.arslan.ndna.model.Preview
 import com.arslan.ndna.model.SearchState
 import kotlinx.coroutines.launch
 
@@ -52,7 +53,10 @@ import kotlinx.coroutines.launch
 fun ResultsScreen(
     state: SearchState,
     onBack: () -> Unit,
+    preview: Preview?,
     onOpen: (AppItem) -> Unit,
+    onPreview: (AppItem) -> Unit,
+    onClosePreview: () -> Unit,
     onBlock: (AppItem) -> Unit,
     onUnblock: (String) -> Unit,
     onLoadMore: () -> Unit,
@@ -68,6 +72,20 @@ fun ResultsScreen(
             val action = snackbar.showSnackbar("Blocked ${item.name}", actionLabel = "Undo")
             if (action == SnackbarResult.ActionPerformed) onUnblock(item.id)
         }
+    }
+    preview?.let {
+        ReadmeDialog(
+            preview = it,
+            onDismiss = onClosePreview,
+            onBlock = {
+                onClosePreview()
+                block(it.item)
+            },
+            onOpen = {
+                onClosePreview()
+                onOpen(it.item)
+            }
+        )
     }
     Scaffold(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -92,7 +110,7 @@ fun ResultsScreen(
             )
         }
     ) { padding ->
-        ResultsBody(state, onOpen, block, onLoadMore, Modifier.padding(padding))
+        ResultsBody(state, onPreview, block, onLoadMore, Modifier.padding(padding))
     }
 }
 

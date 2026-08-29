@@ -45,11 +45,29 @@ class GithubRepo(private val tokenStore: TokenStore) {
         return "GitHub error $code: ${body.take(120)}"
     }
 
-    private fun request(query: String, page: Int): Request {
-        val url = "https://api.github.com/search/repositories" +
+    /** README of "owner/repo" as GitHub-rendered HTML, for the in-app preview. */
+    fun readme(fullName: String): String {
+        val request = request(
+            "https://api.github.com/repos/$fullName/readme",
+            accept = "application/vnd.github.html"
+        )
+        Http.client.newCall(request).execute().use { response ->
+            RateLimiter.record(response)
+            val body = response.body?.string().orEmpty()
+            if (response.code == 404) throw IOException("This repo has no README.")
+            if (!response.isSuccessful) throw IOException(errorOf(response.code, body))
+            return body
+        }
+    }
+
+    private fun request(query: String, page: Int): Request = request(
+        "https://api.github.com/search/repositories" +
             "?q=${java.net.URLEncoder.encode(query, "UTF-8")}&sort=updated&per_page=30&page=$page"
+    )
+
+    private fun request(url: String, accept: String = "application/vnd.github+json"): Request {
         val builder = Request.Builder().url(url)
-            .header("Accept", "application/vnd.github+json")
+            .header("Accept", accept)
             .header("X-GitHub-Api-Version", "2022-11-28")
             .header("User-Agent", "NDNA/1.0")
         val token = tokenStore.get()

@@ -100,7 +100,7 @@ private fun AppCardHeader(item: AppItem, onBlock: () -> Unit) {
 }
 
 @Composable
-private fun AppIcon(item: AppItem) {
+internal fun AppIcon(item: AppItem) {
     val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
@@ -147,7 +147,7 @@ private fun AppCardText(item: AppItem) {
 }
 
 @Composable
-private fun StarBadge(stars: Int) {
+internal fun StarBadge(stars: Int) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.tertiaryContainer

@@ -10,6 +10,7 @@ import com.arslan.ndna.data.TokenStore
 import com.arslan.ndna.model.AppItem
 import com.arslan.ndna.model.BlockedApp
 import com.arslan.ndna.model.Filters
+import com.arslan.ndna.model.Preview
 import com.arslan.ndna.model.SearchState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,9 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     private val _blocked = MutableStateFlow(blockStore.load())
     val blocked = _blocked.asStateFlow()
 
+    private val _preview = MutableStateFlow<Preview?>(null)
+    val preview = _preview.asStateFlow()
+
     private val _state = MutableStateFlow(SearchState())
     val state = _state.asStateFlow()
 
@@ -44,6 +48,25 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     fun search() = run(page = 1)
 
     fun loadMore() = run(page = _state.value.page + 1)
+
+    fun openPreview(item: AppItem) {
+        _preview.value = Preview(item)
+        viewModelScope.launch {
+            val result = runCatching { withContext(Dispatchers.IO) { github.readme(item.name) } }
+            _preview.update { current ->
+                if (current?.item?.id != item.id) return@update current
+                current.copy(
+                    loading = false,
+                    readme = result.getOrDefault(""),
+                    error = result.exceptionOrNull()?.message
+                )
+            }
+        }
+    }
+
+    fun closePreview() {
+        _preview.value = null
+    }
 
     /** Hides an app everywhere and remembers it, so later searches skip it too. */
     fun block(item: AppItem) {
