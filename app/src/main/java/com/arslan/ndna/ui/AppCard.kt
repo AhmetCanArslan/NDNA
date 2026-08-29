@@ -15,12 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,7 +40,6 @@ import com.arslan.ndna.model.AppItem
 fun AppCard(
     item: AppItem,
     modifier: Modifier = Modifier,
-    onBlock: () -> Unit,
     onClick: () -> Unit
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -61,7 +58,7 @@ fun AppCard(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AppCardHeader(item, onBlock)
+            AppCardHeader(item)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -81,7 +78,7 @@ fun AppCard(
 }
 
 @Composable
-private fun AppCardHeader(item: AppItem, onBlock: () -> Unit) {
+private fun AppCardHeader(item: AppItem) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -89,13 +86,6 @@ private fun AppCardHeader(item: AppItem, onBlock: () -> Unit) {
     ) {
         AppIcon(item)
         Box(Modifier.weight(1f)) { AppCardText(item) }
-        IconButton(onClick = onBlock) {
-            Icon(
-                Icons.Rounded.Block,
-                "Block this app",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
     }
 }
 

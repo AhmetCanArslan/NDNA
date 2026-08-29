@@ -110,7 +110,7 @@ fun ResultsScreen(
             )
         }
     ) { padding ->
-        ResultsBody(state, onPreview, block, onLoadMore, Modifier.padding(padding))
+        ResultsBody(state, onPreview, onLoadMore, Modifier.padding(padding))
     }
 }
 
@@ -139,7 +139,6 @@ private fun ErrorEffect(error: String?, snackbar: SnackbarHostState, onShown: ()
 private fun ResultsBody(
     state: SearchState,
     onOpen: (AppItem) -> Unit,
-    onBlock: (AppItem) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier
 ) {
@@ -151,7 +150,7 @@ private fun ResultsBody(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         items(state.items, key = { it.id }) { item ->
-            AppCard(item, Modifier.animateItem(), onBlock = { onBlock(item) }) { onOpen(item) }
+            AppCard(item, Modifier.animateItem()) { onOpen(item) }
         }
         item { LoadMore(state, onLoadMore) }
     }
