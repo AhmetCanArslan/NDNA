@@ -30,11 +30,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arslan.ndna.model.AppItem
 import com.arslan.ndna.model.SearchState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -50,12 +53,22 @@ fun ResultsScreen(
     state: SearchState,
     onBack: () -> Unit,
     onOpen: (AppItem) -> Unit,
+    onBlock: (AppItem) -> Unit,
+    onUnblock: (String) -> Unit,
     onLoadMore: () -> Unit,
     onErrorShown: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     ErrorEffect(state.error, snackbar, onErrorShown)
+    val block: (AppItem) -> Unit = { item ->
+        onBlock(item)
+        scope.launch {
+            val action = snackbar.showSnackbar("Blocked ${item.name}", actionLabel = "Undo")
+            if (action == SnackbarResult.ActionPerformed) onUnblock(item.id)
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbar) },
@@ -79,7 +92,7 @@ fun ResultsScreen(
             )
         }
     ) { padding ->
-        ResultsBody(state, onOpen, onLoadMore, Modifier.padding(padding))
+        ResultsBody(state, onOpen, block, onLoadMore, Modifier.padding(padding))
     }
 }
 
@@ -108,6 +121,7 @@ private fun ErrorEffect(error: String?, snackbar: SnackbarHostState, onShown: ()
 private fun ResultsBody(
     state: SearchState,
     onOpen: (AppItem) -> Unit,
+    onBlock: (AppItem) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier
 ) {
@@ -119,7 +133,7 @@ private fun ResultsBody(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         items(state.items, key = { it.id }) { item ->
-            AppCard(item, Modifier.animateItem()) { onOpen(item) }
+            AppCard(item, Modifier.animateItem(), onBlock = { onBlock(item) }) { onOpen(item) }
         }
         item { LoadMore(state, onLoadMore) }
     }

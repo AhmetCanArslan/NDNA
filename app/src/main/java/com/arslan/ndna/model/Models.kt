@@ -42,6 +42,11 @@ data class AppItem(
     val updatedAt: String = ""
 )
 
+data class BlockedApp(
+    val id: String,
+    val name: String
+)
+
 data class SearchState(
     val loading: Boolean = false,
     val items: List<AppItem> = emptyList(),

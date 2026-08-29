@@ -14,7 +14,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -22,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
@@ -39,12 +42,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.arslan.ndna.model.BlockedApp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     initialToken: String,
     onSaveToken: (String) -> Unit,
+    blocked: List<BlockedApp>,
+    onUnblock: (String) -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -67,7 +73,7 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        SettingsBody(initialToken, onSaveToken, Modifier.padding(padding))
+        SettingsBody(initialToken, onSaveToken, blocked, onUnblock, Modifier.padding(padding))
     }
 }
 
@@ -75,6 +81,8 @@ fun SettingsScreen(
 private fun SettingsBody(
     initialToken: String,
     onSaveToken: (String) -> Unit,
+    blocked: List<BlockedApp>,
+    onUnblock: (String) -> Unit,
     modifier: Modifier
 ) {
     var token by remember { mutableStateOf(initialToken) }
@@ -98,6 +106,46 @@ private fun SettingsBody(
                 Icon(Icons.Rounded.Key, null, Modifier.size(18.dp))
                 Text("Save token", Modifier.padding(start = 8.dp))
             }
+        }
+        BlockedCard(blocked, onUnblock)
+    }
+}
+
+@Composable
+private fun BlockedCard(blocked: List<BlockedApp>, onUnblock: (String) -> Unit) {
+    SectionCard("Blocked apps", MaterialTheme.colorScheme.error) {
+        if (blocked.isEmpty()) {
+            Text(
+                "Nothing blocked yet. Tap the block icon on a result to hide it from searches.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            return@SectionCard
+        }
+        blocked.forEach { app -> BlockedRow(app) { onUnblock(app.id) } }
+    }
+}
+
+@Composable
+private fun BlockedRow(app: BlockedApp, onUnblock: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Rounded.Block,
+            null,
+            Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Text(
+            app.name,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(onClick = onUnblock) {
+            Icon(Icons.Rounded.Undo, "Unblock ${'$'}{app.name}")
         }
     }
 }

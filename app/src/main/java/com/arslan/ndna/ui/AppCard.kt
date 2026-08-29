@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,7 +39,12 @@ import com.arslan.ndna.model.AppItem
 /** Result card: squashes its corners while pressed, expressive-style. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AppCard(item: AppItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun AppCard(
+    item: AppItem,
+    modifier: Modifier = Modifier,
+    onBlock: () -> Unit,
+    onClick: () -> Unit
+) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val corner by animateDpAsState(if (pressed) 14.dp else 28.dp, label = "cardCorner")
@@ -54,7 +61,7 @@ fun AppCard(item: AppItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AppCardHeader(item)
+            AppCardHeader(item, onBlock)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -74,14 +81,21 @@ fun AppCard(item: AppItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AppCardHeader(item: AppItem) {
+private fun AppCardHeader(item: AppItem, onBlock: () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
         AppIcon(item)
-        AppCardText(item)
+        Box(Modifier.weight(1f)) { AppCardText(item) }
+        IconButton(onClick = onBlock) {
+            Icon(
+                Icons.Rounded.Block,
+                "Block this app",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

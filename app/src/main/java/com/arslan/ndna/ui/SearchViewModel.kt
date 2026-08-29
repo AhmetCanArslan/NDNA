@@ -3,10 +3,12 @@ package com.arslan.ndna.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.arslan.ndna.data.BlockStore
 import com.arslan.ndna.data.FiltersStore
 import com.arslan.ndna.data.GithubRepo
 import com.arslan.ndna.data.TokenStore
 import com.arslan.ndna.model.AppItem
+import com.arslan.ndna.model.BlockedApp
 import com.arslan.ndna.model.Filters
 import com.arslan.ndna.model.SearchState
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +28,11 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     private val _filters = MutableStateFlow(filtersStore.load())
     val filters = _filters.asStateFlow()
 
+    private val blockStore = BlockStore(app)
+
+    private val _blocked = MutableStateFlow(blockStore.load())
+    val blocked = _blocked.asStateFlow()
+
     private val _state = MutableStateFlow(SearchState())
     val state = _state.asStateFlow()
 
@@ -37,6 +44,20 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     fun search() = run(page = 1)
 
     fun loadMore() = run(page = _state.value.page + 1)
+
+    /** Hides an app everywhere and remembers it, so later searches skip it too. */
+    fun block(item: AppItem) {
+        updateBlocked(_blocked.value + BlockedApp(item.id, item.name))
+        _state.update { it.copy(items = it.items.filterNot { app -> app.id == item.id }) }
+    }
+
+    fun unblock(id: String) = updateBlocked(_blocked.value.filterNot { it.id == id })
+
+    private fun updateBlocked(blocked: List<BlockedApp>) {
+        val sorted = blocked.distinctBy { it.id }.sortedBy { it.name.lowercase() }
+        _blocked.value = sorted
+        blockStore.save(sorted)
+    }
 
     fun clearError() = _state.update { it.copy(error = null) }
 
@@ -59,5 +80,8 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         return SearchState(false, merged, null, page, items.isNotEmpty())
     }
 
-    private fun collect(page: Int): List<AppItem> = github.search(_filters.value, page)
+    private fun collect(page: Int): List<AppItem> {
+        val blockedIds = _blocked.value.map { it.id }.toSet()
+        return github.search(_filters.value, page).filterNot { it.id in blockedIds }
+    }
 }
