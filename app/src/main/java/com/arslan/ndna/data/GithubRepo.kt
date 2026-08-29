@@ -84,6 +84,7 @@ class GithubRepo(private val tokenStore: TokenStore) {
         val name = json.optString("full_name")
         val description = json.optString("description").ifBlank { "No description" }
         val stars = json.optInt("stargazers_count")
+        val language = json.optString("language").ifBlank { null }
         return AppItem(
             id = "gh-${json.optLong("id")}",
             name = name,
@@ -92,7 +93,7 @@ class GithubRepo(private val tokenStore: TokenStore) {
             url = json.optString("html_url"),
             stars = stars,
             source = "GitHub",
-            matches = Matcher.chips(filters, name, description),
+            matches = Matcher.chips(filters, name, description, language),
             updatedAt = json.optString("pushed_at")
         )
     }
