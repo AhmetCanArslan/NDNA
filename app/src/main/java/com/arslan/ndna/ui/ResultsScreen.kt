@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -69,7 +70,11 @@ fun ResultsScreen(
     val block: (AppItem) -> Unit = { item ->
         onBlock(item)
         scope.launch {
-            val action = snackbar.showSnackbar("Blocked ${item.name}", actionLabel = "Undo")
+            val action = snackbar.showSnackbar(
+                message = "Blocked ${item.name}",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Short
+            )
             if (action == SnackbarResult.ActionPerformed) onUnblock(item.id)
         }
     }
