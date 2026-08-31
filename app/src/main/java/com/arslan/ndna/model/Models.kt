@@ -14,18 +14,22 @@ enum class Triple3(val label: String) {
 }
 
 enum class Recency(val label: String, val minutes: Long?) {
-    ANY("Any", null),
-    M10("10 min", 10),
     H1("1 hour", 60),
-    D1("24 hours", 1440),
-    D7("7 days", 10080)
+    H2("2 hours", 120),
+    H3("3 hours", 180),
+    H6("6 hours", 360),
+    H12("12 hours", 720),
+    H24("24 hours", 1440),
+    W1("1 week", 10080),
+    MO1("1 month", 43200),
+    ANY("Any", null)
 }
 
 data class Filters(
     val minStars: Int = 5,
     val maxStars: Int = 1000,
     val langs: Set<Lang> = setOf(Lang.KOTLIN),
-    val recency: Recency = Recency.D1,
+    val recency: Recency = Recency.H24,
     val shizuku: Triple3 = Triple3.ANY,
     val keywords: String = ""
 )
